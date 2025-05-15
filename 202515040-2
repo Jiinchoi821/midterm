@@ -1,0 +1,46 @@
+# YOLOv8 설치
+!pip install ultralytics
+
+# 필요한 라이브러리 임포트
+from ultralytics import YOLO
+import matplotlib.pyplot as plt
+from PIL import Image
+from google.colab import files
+
+# YOLOv8 모델 로드
+print("YOLOv8 모델 로딩 중...")
+model = YOLO('yolov8m.pt')
+
+# 이미지 업로드
+print("이미지를 업로드하세요:")
+uploaded = files.upload()
+
+# 업로드된 각 이미지에 대해 처리
+for filename in uploaded.keys():
+    print(f"\n📷 {filename} 파일 분석 중...")
+    results = model(filename)
+
+    # 결과 이미지 시각화
+    res_plotted = results[0].plot()
+    plt.figure(figsize=(12, 10))
+    plt.imshow(res_plotted)
+    plt.axis('off')
+    plt.title('객체 검출 결과')
+    plt.show()
+    
+# 고양이 클래스 ID (COCO 기준: cat = 15)
+cat_class_id = 15
+cat_count = 0
+
+print("\n고양이 탐지 결과:")
+for r in results:
+    for i, box in enumerate(r.boxes):
+        class_id = int(box.cls[0])
+        if class_id == cat_class_id:
+            class_name = model.names[class_id]
+            confidence = float(box.conf[0])
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            cat_count += 1
+            print(f"{cat_count}. {class_name}: {confidence:.2f}, 위치: [{int(x1)}, {int(y1)}, {int(x2)}, {int(y2)}]")
+
+print(f"\n총 고양이 마릿수: {cat_count} 마리")
